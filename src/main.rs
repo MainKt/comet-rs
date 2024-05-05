@@ -5,6 +5,7 @@ use x11rb::{
         xproto::{ConnectionExt, GrabMode, GrabStatus},
         Event,
     },
+    NONE,
 };
 
 #[derive(Parser)]
@@ -43,18 +44,55 @@ fn main() -> anyhow::Result<()> {
                 println!("Failed to Grab keyboard!");
             }
 
+            let (mut x_offset, mut y_offset) = (10, 10);
+
             loop {
                 let event = conn.wait_for_event()?;
 
                 match event {
-                    Event::KeyRelease(event) => match event.detail {
-                        9 => break,
-                        key => {
-                            println!("Released key: {key:?}");
+                    Event::KeyRelease(event) => {
+                        let pointer_query = conn.query_pointer(screen.root)?.reply()?;
+                        let (x, y) = (pointer_query.root_x, pointer_query.root_y);
+                        match event.detail {
+                            9 /* Escape */ => break,
+                            43 /* h */ => {
+                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x - x_offset, y)?;
+                            }
+                            44 /* j */ => {
+                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x, y + y_offset)?;
+                            }
+                            45 /* k */ => {
+                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x, y - y_offset)?;
+                            }
+                            46 /* l */ => {
+                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x + x_offset, y)?;
+                            }
+                            38 /* a */ => {
+                                x_offset += 10;
+                                if x_offset < 0 {
+                                    x_offset = 10;
+                                }
+                                y_offset = x_offset;
+                            }
+                            40 /* d */ => {
+                                x_offset -= 10;
+                                if x_offset < 0 {
+                                    x_offset = 10;
+                                }
+                                y_offset = x_offset;
+                            }
+                            58 /* m */ => {}
+                            59 /* , */ => {}
+                            60 /* . */ => {}
+                            key => {
+                                println!("Pressed key: {key:?}");
+                            }
                         }
-                    },
+                    }
                     _ => {}
                 }
+
+                conn.flush()?;
             }
 
             conn.ungrab_keyboard(x11rb::CURRENT_TIME)?;
