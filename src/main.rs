@@ -1,12 +1,11 @@
 use clap::{Parser, Subcommand};
-use enigo::{Button, Direction::Click, Enigo, Mouse, Settings};
+use enigo::{Button, Coordinate, Direction::Click, Enigo, Mouse, Settings};
 use x11rb::{
     connection::Connection,
     protocol::{
         xproto::{ConnectionExt, GrabMode, GrabStatus},
         Event,
     },
-    NONE,
 };
 
 #[derive(Parser)]
@@ -51,53 +50,48 @@ fn main() -> anyhow::Result<()> {
             loop {
                 let event = conn.wait_for_event()?;
 
-                match event {
-                    Event::KeyRelease(event) => {
-                        let pointer_query = conn.query_pointer(screen.root)?.reply()?;
-                        let (x, y) = (pointer_query.root_x, pointer_query.root_y);
-                        match event.detail {
-                            9 /* Escape */ => break,
-                            43 /* h */ => {
-                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x - x_offset, y)?;
+                if let Event::KeyRelease(event) = event {
+                    match event.detail {
+                        9 /* Escape */ => break,
+                        43 /* h */ => {
+                            enigo.move_mouse(-x_offset, 0, Coordinate::Rel)?;
+                        }
+                        44 /* j */ => {
+                            enigo.move_mouse(0, y_offset, Coordinate::Rel)?;
+                        }
+                        45 /* k */ => {
+                            enigo.move_mouse(0, -y_offset, Coordinate::Rel)?;
+                        }
+                        46 /* l */ => {
+                            enigo.move_mouse(x_offset, 0, Coordinate::Rel)?;
+                        }
+                        38 /* a */ => {
+                            x_offset += 10;
+                            if x_offset < 0 {
+                                x_offset = 10;
                             }
-                            44 /* j */ => {
-                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x, y + y_offset)?;
+                            y_offset = x_offset;
+                        }
+                        40 /* d */ => {
+                            x_offset -= 10;
+                            if x_offset < 0 {
+                                x_offset = 10;
                             }
-                            45 /* k */ => {
-                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x, y - y_offset)?;
-                            }
-                            46 /* l */ => {
-                                conn.warp_pointer(NONE, screen.root, 0, 0, 0, 0, x + x_offset, y)?;
-                            }
-                            38 /* a */ => {
-                                x_offset += 10;
-                                if x_offset < 0 {
-                                    x_offset = 10;
-                                }
-                                y_offset = x_offset;
-                            }
-                            40 /* d */ => {
-                                x_offset -= 10;
-                                if x_offset < 0 {
-                                    x_offset = 10;
-                                }
-                                y_offset = x_offset;
-                            }
-                            58 /* m */ => {
-                                enigo.button(Button::Left, Click)?;
-                            }
-                            59 /* , */ => {
-                                enigo.button(Button::Middle, Click)?;
-                            }
-                            60 /* . */ => {
-                                enigo.button(Button::Right, Click)?;
-                            }
-                            key => {
-                                println!("Pressed key: {key:?}");
-                            }
+                            y_offset = x_offset;
+                        }
+                        58 /* m */ => {
+                            enigo.button(Button::Left, Click)?;
+                        }
+                        59 /* , */ => {
+                            enigo.button(Button::Middle, Click)?;
+                        }
+                        60 /* . */ => {
+                            enigo.button(Button::Right, Click)?;
+                        }
+                        key => {
+                            println!("Pressed key: {key:?}");
                         }
                     }
-                    _ => {}
                 }
 
                 conn.flush()?;
