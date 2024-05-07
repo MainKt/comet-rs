@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use enigo::{Button, Direction::Click, Enigo, Mouse, Settings};
 use x11rb::{
     connection::Connection,
     protocol::{
@@ -46,6 +47,7 @@ fn main() -> anyhow::Result<()> {
 
             let (mut x_offset, mut y_offset) = (10, 10);
 
+            let mut enigo = Enigo::new(&Settings::default())?;
             loop {
                 let event = conn.wait_for_event()?;
 
@@ -81,9 +83,15 @@ fn main() -> anyhow::Result<()> {
                                 }
                                 y_offset = x_offset;
                             }
-                            58 /* m */ => {}
-                            59 /* , */ => {}
-                            60 /* . */ => {}
+                            58 /* m */ => {
+                                enigo.button(Button::Left, Click)?;
+                            }
+                            59 /* , */ => {
+                                enigo.button(Button::Middle, Click)?;
+                            }
+                            60 /* . */ => {
+                                enigo.button(Button::Right, Click)?;
+                            }
                             key => {
                                 println!("Pressed key: {key:?}");
                             }
