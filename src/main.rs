@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use enigo::{Button, Coordinate, Direction::Click, Enigo, Mouse, Settings};
+use enigo::{Axis, Button, Coordinate, Direction::Click, Enigo, Mouse, Settings};
 use x11rb::{
     connection::Connection,
     protocol::{
@@ -44,54 +44,88 @@ fn main() -> anyhow::Result<()> {
                 println!("Failed to Grab keyboard!");
             }
 
-            let (mut x_offset, mut y_offset) = (10, 10);
+            let (mut x_offset, mut y_offset) = (20, 20);
+            let scroll_offset = 5;
+            let mut held_shift = false;
 
             let mut enigo = Enigo::new(&Settings::default())?;
             loop {
                 let event = conn.wait_for_event()?;
 
-                if let Event::KeyRelease(event) = event {
-                    match event.detail {
-                        9 /* Escape */ => break,
-                        43 /* h */ => {
-                            enigo.move_mouse(-x_offset, 0, Coordinate::Rel)?;
-                        }
-                        44 /* j */ => {
-                            enigo.move_mouse(0, y_offset, Coordinate::Rel)?;
-                        }
-                        45 /* k */ => {
-                            enigo.move_mouse(0, -y_offset, Coordinate::Rel)?;
-                        }
-                        46 /* l */ => {
-                            enigo.move_mouse(x_offset, 0, Coordinate::Rel)?;
-                        }
-                        38 /* a */ => {
-                            x_offset += 10;
-                            if x_offset < 0 {
-                                x_offset = 10;
+                match event {
+                    Event::KeyPress(event) => {
+                        match event.detail {
+                            9 /* Escape */ => break,
+                            43 /* h */ => {
+                                if held_shift {
+                                    enigo.scroll(-scroll_offset, Axis::Horizontal)?;
+                                } else {
+                                    enigo.move_mouse(-x_offset, 0, Coordinate::Rel)?;
+                                }
                             }
-                            y_offset = x_offset;
-                        }
-                        40 /* d */ => {
-                            x_offset -= 10;
-                            if x_offset < 0 {
-                                x_offset = 10;
+                            44 /* j */ => {
+                                if held_shift {
+                                    enigo.scroll(scroll_offset, Axis::Vertical)?;
+                                } else {
+                                    enigo.move_mouse(0, y_offset, Coordinate::Rel)?;
+                                }
                             }
-                            y_offset = x_offset;
-                        }
-                        58 /* m */ => {
-                            enigo.button(Button::Left, Click)?;
-                        }
-                        59 /* , */ => {
-                            enigo.button(Button::Middle, Click)?;
-                        }
-                        60 /* . */ => {
-                            enigo.button(Button::Right, Click)?;
-                        }
-                        key => {
-                            println!("Pressed key: {key:?}");
+                            45 /* k */ => {
+                                if held_shift {
+                                    enigo.scroll(-scroll_offset, Axis::Vertical)?;
+                                } else {
+                                    enigo.move_mouse(0, -y_offset, Coordinate::Rel)?;
+                                }
+                            }
+                            46 /* l */ => {
+                                if held_shift {
+                                    enigo.scroll(scroll_offset, Axis::Horizontal)?;
+                                } else {
+                                    enigo.move_mouse(x_offset, 0, Coordinate::Rel)?;
+                                }
+                            }
+                            38 /* a */ => {
+                                x_offset += 10;
+                                if x_offset < 0 {
+                                    x_offset = 20;
+                                }
+                                y_offset = x_offset;
+                            }
+                            40 /* d */ => {
+                                x_offset -= 10;
+                                if x_offset < 0 {
+                                    x_offset = 20;
+                                }
+                                y_offset = x_offset;
+                            }
+                            58 /* m */ => {
+                                enigo.button(Button::Left, Click)?;
+                            }
+                            59 /* , */ => {
+                                enigo.button(Button::Middle, Click)?;
+                            }
+                            60 /* . */ => {
+                                enigo.button(Button::Right, Click)?;
+                            }
+                            50 /* shift */ => {
+                                held_shift = true;
+                            }
+                            key => {
+                                println!("Pressed key: {key:?}");
+                            }
                         }
                     }
+                    Event::KeyRelease(event) => {
+                        match event.detail {
+                            50 /* shift */ => {
+                                held_shift = false;
+                            }
+                            key => {
+                                println!("Released key: {key:?}");
+                            }
+                        }
+                    }
+                    _ => (),
                 }
 
                 conn.flush()?;

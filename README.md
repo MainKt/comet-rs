@@ -33,7 +33,7 @@ Options:
 ## TODO
 - [x] Grab keyboard
 - [x] Implement pointer movements
+- [x] Implement pointer button clicks
 - [ ] Restrict mouse hide when in normal mode
 - [ ] Refactor the code
-- [ ] Implement pointer button clicks
 - [ ] Implement hint mode
