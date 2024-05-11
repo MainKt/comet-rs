@@ -1,4 +1,4 @@
-# warpd-rs
+# comet
 A modal keyboard driven interface for mouse manipulation in Rust inspired from [warpd](https://github.com/rvaiya/warpd)
 
 ## Pre-requisites
@@ -9,17 +9,17 @@ Only X11 is supported for now
 
 ## Building
 ```shell
-$ git clone https://github.com/MainKt/warpd-rs
-$ cd warpd-rs
+$ git clone https://github.com/MainKt/comet
+$ cd comet
 $ cargo build --release
-$ ./target/release/warpd-rs --version
-warpd-rs 0.1.0
+$ ./target/release/comet --version
+comet 0.1.0
 ```
 
 ## Usage
 ```
-$ warpd-rs
-Usage: warpd-rs <COMMAND>
+$ comet
+Usage: comet <COMMAND>
 
 Commands:
   normal  Run in normal mode
@@ -34,6 +34,5 @@ Options:
 - [x] Grab keyboard
 - [x] Implement pointer movements
 - [x] Implement pointer button clicks
-- [ ] Restrict mouse hide when in normal mode
 - [ ] Refactor the code
 - [ ] Implement hint mode
