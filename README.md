@@ -32,7 +32,7 @@ Options:
 
 ## TODO
 - [x] Grab keyboard
-- [x] Implement pointer movements
-- [x] Implement pointer button clicks
-- [ ] Refactor the code
+- [x] Implement pointer movements, button clicks and scroll on Xorg
+- [ ] Move to egui and enigo
+- [ ] Add configuration options
 - [ ] Implement hint mode
